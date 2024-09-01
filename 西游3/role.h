@@ -2,13 +2,13 @@
 #include<bits/stdc++.h>
 #include"skill.h"
 #include"good.h"
-#include"task.h"
+//#include"task.h"
 using namespace std;
 
 
 class Role {//Ö÷½Ç
 public:
-	void operator =(Role player);
+	//void operator =(Role player);
 
 public:
 	string Name;
@@ -40,7 +40,7 @@ public:
 
 class enemy {//Åä½Ç
 public:
-	void operator= (enemy npc);
+	//void operator= (enemy npc);
 
 public:
 
