@@ -12,12 +12,7 @@ void color(const unsigned short textColor)      //自定义函根据参数改变颜色
 		SetConsoleTextAttribute(GetStdHandle(STD_OUTPUT_HANDLE), 7);
 }
 
-struct Status {
-	short role_index;
-	short place_index;
-	short previous_index;
-	short status;
-}record;
+
 
 
 
@@ -63,14 +58,14 @@ void game::game_init() {
 
 	color(9);
 	cout << "1.唐僧\t2.孙悟空\t3.猪八戒\t4.沙和尚" << endl;
-	cin >> record.role_index;
+	cin >> record.current_role;
 	color(7);
-	while (record.role_index < 1 || record.role_index>4) {
+	while (record.current_role < 1 || record.current_role>4) {
 		cout << "没有此选项，请选择正确选项。" << endl;
-		cin >> record.role_index;
+		cin >> record.current_role;
 	}
 
-	record.place_index = record.role_index;
+	record.current_place = record.current_role;
 	//init_show();
 
 
@@ -108,14 +103,14 @@ void game::game_begin() {
 		case player_adven:
 			system("cls");
 			init_show();
-			cout << "1.交谈	2.观察	3.攻击	4.拾取	5.赶路	6.状态	7.退出并存档	8.地图" << endl;
+			cout << "1.交谈	2.观察	3.攻击	4.拾取	5.赶路	6.状态	7.退出并存档	8.地图  9.商店" << endl;
 			cin >> choice;
 			while (choice < 1 || choice>8) {
 				cout << "请输入正确选项。" << endl;
 				cin >> choice;
 			}
 			if (choice == 1) {
-				if (place[record.place_index].npc_index == 0) {
+				if (place[record.current_place].npc_index == 0) {
 					color(4);
 					cout << "这里没有人可以交谈。" << endl;
 					color(7);
@@ -124,7 +119,7 @@ void game::game_begin() {
 				}
 				else {
 					color(13);
-					cout << "你可以和" << npc[place[record.place_index].npc_index].name << "交谈" << endl;
+					cout << "你可以和" << npc[place[record.current_place].npc_index].name << "交谈" << endl;
 					record.status = talk_with_npc;
 					color(7);
 				}
@@ -144,6 +139,9 @@ void game::game_begin() {
 			else if (choice == 5) {
 				record.status = show_exits;
 			}
+			else if (choice == 6) {
+				record.status = player_state;
+			}
 			else if (choice == 7) {
 				record.status = 20;
 			}
@@ -161,14 +159,17 @@ void game::game_begin() {
 				system("pause");
 				color(7);
 			}
+			else if (choice == 9) {
+				record.status = trading;
+			}
 
 			break;
 		case show_exits:
-			cout << "当前位置位于：" << place[record.place_index].Name << endl;
+			cout << "当前位置位于：" << place[record.current_place].Name << endl;
 			cout << "你可以去到：" << endl;
 			int i;
-			for (i = 1; i <= place[record.place_index].connectnum; i++) {
-				cout << i << "." << place[place[record.place_index].connect_place[i]].Name << endl;
+			for (i = 1; i <= place[record.current_place].connectnum; i++) {
+				cout << i << "." << place[place[record.current_place].connect_place[i]].Name << endl;
 			}
 			cout << i << ".退出" << endl;
 			cin >> choice;
@@ -176,14 +177,14 @@ void game::game_begin() {
 				cout << "请输入正确的选项。" << endl;
 				cin >> choice;
 			}
-			if ((place[record.place_index].connect_place[choice] == 12 || place[record.place_index].connect_place[choice] == 13) && npc[4].taskstatus != 3) {
+			if ((place[record.current_place].connect_place[choice] == 12 || place[record.current_place].connect_place[choice] == 13) && npc[4].taskstatus != 3) {
 				cout << "你找不到去往此地的路" << endl;
 				system("pause");
 
 			}
-			else if (place[record.place_index].connect_place[choice] == 10) {
+			else if (place[record.current_place].connect_place[choice] == 10) {
 				if (true) {  //你拥有芭蕉扇
-					record.place_index = place[record.place_index].connect_place[choice];
+					record.current_place = place[record.current_place].connect_place[choice];
 				}
 				else {
 					cout << "此处的三昧真火使得你无法前往，需要拥有芭蕉扇才可以通过。" << endl;
@@ -194,7 +195,7 @@ void game::game_begin() {
 				record.status = player_adven;
 			}
 			else
-				record.place_index = place[record.place_index].connect_place[choice];
+				record.current_place = place[record.current_place].connect_place[choice];
 			system("cls");
 			record.status = player_adven;
 
@@ -211,38 +212,113 @@ void game::game_begin() {
 			system("cls");
 
 			if (choice == 1)
-				select_talk(place[record.place_index].npc_index);
+				select_talk(place[record.current_place].npc_index);
 			system("pause");
 			record.status = player_adven;
 			break;
 		case attack_npc:
+			fight(show_enemy());
+			system("pause");
+			system("cls");
+			record.status = system_menu;
 			break;
+
+		case player_state:
+			while (true) {
+				cout << "1.人物属性  2.背包及装备  3.退出" << endl;
+				cin >> i;
+				if (i == 1) {
+					show_state();
+				}
+				else if (i == 2) {
+					while (true) {
+						system("cls");
+						show_bag();
+						show_myeq();
+						cout << "1.配置装备  2.脱下装备  3.退出" << endl;
+						cin >> i;
+						if (i == 1) {
+							equip();
+						}
+						else if (i == 2) {
+							disequip();
+						}
+						else if (i == 3) {
+							break;
+						}
+						system("pause");
+					}
+				}
+				else if (i == 3) {
+					record.status = system_menu;
+					break;
+				}
+				system("pause");
+				system("cls");
+			}
+			system("cls");
+			record.status = system_menu;
+			break;
+
 		case watch_npc:
 			break;
-		}
-		if (record.status == 20) {
-			cout << "请问你是否要保存游戏进度?" << endl;
-			cin >> choice;
-			while (choice < 1 || choice>8) {
-				cout << "请输入正确选项。" << endl;
+
+
+		case trading:
+			int input;
+			while (true) {
+				system("cls");
+				show_eq();
+				cout << "1.查看详细信息  2.查看背包  3.购买  4.出售  5.退出" << endl;
+				cin >> i;
+				if (i == 1) {
+					cout << "请输入要查询的装备" << endl;
+					cin >> input;
+					show_eqdate(input);
+				}
+				else if (i == 2) {
+					show_bag();
+				}
+				else if (i == 3) {
+					buy();
+				}
+				else if (i == 4) {
+					sell();
+				}
+				else if (i == 5) {
+					break;
+				}
+				system("pause");
+			}
+			system("cls");
+			record.status = system_menu;
+			break;
+
+
+			if (record.status == 20) {
+				cout << "请问你是否要保存游戏进度?" << endl;
 				cin >> choice;
-			}
-			if (choice == 1) {
-				string end = "正在保存并退出游戏...";
-				for (int i = 0; i < end.length(); i++) {
-					Sleep(10);
-					cout << end[i];
+				while (choice < 1 || choice>8) {
+					cout << "请输入正确选项。" << endl;
+					cin >> choice;
 				}
-				break;
-			}
-			else {
-				string end = "正在退出游戏...";
-				for (int i = 0; i < end.length(); i++) {
-					Sleep(10);
-					cout << end[i];
+				if (choice == 1) {
+					string end = "正在保存并退出游戏...";
+					for (int i = 0; i < end.length(); i++) {
+						Sleep(10);
+						cout << end[i];
+					}
+					break;
 				}
-				cout << endl;
-				break;
+				else {
+					string end = "正在退出游戏...";
+					for (int i = 0; i < end.length(); i++) {
+						Sleep(10);
+						cout << end[i];
+					}
+					cout << endl;
+					break;
+				}
 			}
 		}
 	}
@@ -250,12 +326,12 @@ void game::game_begin() {
 
 void game::init_show() {
 	color(6);
-	if (role[record.role_index].place_index[record.place_index] == 1) {
-		role[record.role_index].place_index[record.place_index] = 0;
-		cout << "欢迎你来到" << place[record.place_index].Name << endl;
-		for (int i = 0; i < place[record.place_index].Describe.length(); i++) {
+	if (role[record.current_role].place_index[record.current_place] == 1) {
+		role[record.current_role].place_index[record.current_place] = 0;
+		cout << "欢迎你来到" << place[record.current_place].Name << endl;
+		for (int i = 0; i < place[record.current_place].Describe.length(); i++) {
 			//Sleep(10);
-			cout << place[record.place_index].Describe[i];
+			cout << place[record.current_place].Describe[i];
 		}
 		cout << endl;
 		system("pause");
@@ -264,14 +340,14 @@ void game::init_show() {
 	color(3);
 	cout << "当前人物属性\t姓名：";
 	color(9);
-	cout << role[record.role_index].Name;
+	cout << role[record.current_role].Name;
 	color(3);
-	cout << "\t等级：" << role[record.role_index].Exp << endl;
-	cout << "生命：" << role[record.role_index].Hp << "/" << role[record.role_index].Max_Hp << "\t蓝量：" << role[record.role_index].Mp << "/" << role[record.role_index].Max_Mp << endl;
-	cout << "攻击：" << role[record.role_index].Attack << "\t防御：" << role[record.role_index].Defence << "\t速度：" << role[record.role_index].Speed << "\t金钱：" << role[record.role_index].Money << endl;
+	cout << "\t等级：" << role[record.current_role].Exp << endl;
+	cout << "生命：" << role[record.current_role].HP << "/" << role[record.current_role].Max_Hp << "\t蓝量：" << role[record.current_role].MP << "/" << role[record.current_role].Max_Mp << endl;
+	cout << "攻击：" << role[record.current_role].Attack << "\t防御：" << role[record.current_role].Defence << "\t速度：" << role[record.current_role].Speed << "\t金钱：" << role[record.current_role].Money << endl;
 	cout << "当前所在地点：";
 	color(6);
-	cout << place[record.place_index].Name << endl;
+	cout << place[record.current_place].Name << endl;
 	color(7);
 }
 
@@ -281,15 +357,27 @@ void game::init_role() {
 	role[2].Name = "孙悟空";
 	role[2].Describe = "你是天地孕育的灵猴，拜师于菩提祖师，习得神通。却因生性顽劣，大闹天庭，闯下弥天大祸。受观音菩萨和如来佛祖点化，前往西天造化自我。";
 	role[2].Attack;//普攻值
-	role[2].Money = 1;//金币，用于买装备
-	role[2].Hp = 1;//生命值
-	role[2].Max_Hp = 1;//当前HP阈值
-	role[2].Defence -= 1;//护盾
-	role[2].Mp = 1;//蓝量
-	role[2].Max_Mp = 1;//当前MP阈值
-	role[2].Speed = 1;//速度
-	role[2].Exp = 1;//经验值
-	role[2].Level = 1;//等级
+	for (int i = 1, j = 4; i <= 3, j <= 6; i++, j++)
+	{
+		role[2].skill_index[i] = j;
+	}
+	role[2].Money;//金币，用于买装备
+	for (int i = 0; i < 15; i++)
+	{
+		role[2].Bag[i] = 0;
+	}
+	for (int i = 0; i < 5; i++)
+	{
+		role[2].MyEquipment_index[i] = 0;
+	}
+	role[2].HP;//生命值
+	role[2].Max_Hp;//当前HP阈值
+	role[2].Defence;//护盾
+	role[2].MP;//蓝量
+	role[2].Max_Mp;//当前MP阈值
+	role[2].Speed;//速度
+	role[2].Exp;//经验值
+	role[2].Level;//等级
 	for (int i = 1; i <= 14; i++) {
 		role[2].place_index[i] = 1;
 	}
@@ -299,18 +387,28 @@ void game::init_role() {
 
 	role[3].Name = "猪八戒";
 	role[3].Describe = "你本是天上的天蓬元帅，威风凛凛，相貌堂堂。却因醉酒后调戏了嫦娥，被贬下凡，以猪的样子示人，为重回天上，弥补自己犯下的过错，你踏上了前往西天取经的道路。";
-	role[3].Attack = 1;//普攻值
-
-	role[3].Money = 1;//金币，用于买装备
-	//role[2].MyEquipment_index[5];//当前装备
-	role[3].Hp = 1;//生命值
-	role[3].Max_Hp = 1;//当前HP阈值
-	role[3].Defence = 1;//护盾
-	role[3].Mp = 1;//蓝量
-	role[3].Max_Mp = 1;//当前MP阈值
-	role[3].Speed = 1;//速度
-	role[3].Exp = 1;//经验值
-	role[3].Level = 1;//等级
+	role[3].Attack;//普攻值
+	for (int i = 1, j = 7; i <= 3, j <= 9; i++, j++)
+	{
+		role[3].skill_index[i] = j;
+	}
+	role[3].Money;//金币，用于买装备
+	for (int i = 0; i < 15; i++)
+	{
+		role[3].Bag[i] = 0;
+	}
+	for (int i = 0; i < 5; i++)
+	{
+		role[3].MyEquipment_index[i] = 0;
+	}
+	role[3].HP;//生命值
+	role[3].Max_Hp;//当前HP阈值
+	role[3].Defence;//护盾
+	role[3].MP;//蓝量
+	role[3].Max_Mp;//当前MP阈值
+	role[3].Speed;//速度
+	role[3].Exp;//经验值
+	role[3].Level;//等级
 	for (int i = 1; i <= 14; i++) {
 		role[3].place_index[i] = 1;
 	}
@@ -320,17 +418,27 @@ void game::init_role() {
 
 	role[4].Name = "沙和尚";
 	role[4].Describe = "幼年的你得遇真人，修得三千功德圆满，被玉帝亲封为卷帘大将。却因为在蟠桃会上失手打翻了琉璃盏，被贬下流沙河，以人为食。经观音菩萨点化，欲皈依佛门，前往西天取经。";
-	role[4].Attack = 1;//普攻值
-	role[4].Money = 1;//金币，用于买装备
-	//role[3].MyEquipment_index[5];//当前装备
-	role[4].Hp = 1;//生命值
-	role[4].Max_Hp = 1;//当前HP阈值
-	role[4].Defence = 1;//护盾
-	role[4].Mp = 1;//蓝量
-	role[4].Max_Mp = 1;//当前MP阈值
-	role[4].Speed = 1;//速度
-	role[4].Exp = 1;//经验值
-	role[4].Level = 1;//等级
+	for (int i = 1, j = 10; i <= 3, j <= 12; i++, j++)
+	{
+		role[4].skill_index[i] = j;
+	}
+	role[4].Money;//金币，用于买装备
+	for (int i = 0; i < 15; i++)
+	{
+		role[4].Bag[i] = 0;
+	}
+	for (int i = 0; i < 5; i++)
+	{
+		role[4].MyEquipment_index[i] = 0;
+	}
+	role[4].HP;//生命值
+	role[4].Max_Hp;//当前HP阈值
+	role[4].Defence;//护盾
+	role[4].MP;//蓝量
+	role[4].Max_Mp;//当前MP阈值
+	role[4].Speed;//速度
+	role[4].Exp;//经验值
+	role[4].Level;//等级
 	for (int i = 1; i <= 14; i++) {
 		role[4].place_index[i] = 1;
 	}
@@ -340,18 +448,31 @@ void game::init_role() {
 
 	role[1].Name = "唐僧";
 	role[1].Describe = "你生长于东土大唐，是如来佛祖的二弟子金蝉子转世。现如今百姓饱经磨砺苦难，民不聊生。受唐太宗之命，亦是为实现自我的宗教信仰和使命，也为了救赎自己前世的过错，你毅然决然地踏上前往西天取经的道路，以普度众生。";
-	role[1].Attack = 1;//普攻值
-
-	role[1].Money = 1;//金币，用于买装备
-	//role[4].MyEquipment_index[5];//当前装备
-	role[1].Hp = 1;//生命值
-	role[1].Max_Hp = 1;//当前HP阈值
-	role[1].Defence = 1;//护盾
-	role[1].Mp = 1;//蓝量
-	role[1].Max_Mp = 1;//当前MP阈值
-	role[1].Speed = 1;//速度
-	role[1].Exp = 1;//经验值
+	role[1].Attack = 10;//普攻值
+	
+	for (int i = 1, j = 1; i <= 3, j <= 3; i++, j++)
+	{
+		role[1].skill_index[i] = j;
+	}
+	role[1].Money = 100;//金币，用于买装备
+	for (int i = 0; i < 15; i++)
+	{
+		role[1].Bag[i] = 0;
+	}
+	for (int i = 0; i < 5; i++)
+	{
+		role[1].MyEquipment_index[i] = 0;
+	}
+	role[1].HP = 100;//生命值
+	role[1].Max_Hp = 100;//当前HP阈值
+	role[1].Defence = 0.2;//护盾
+	role[1].MP = 20;//蓝量
+	role[1].Max_Mp = 50;//当前MP阈值
+	role[1].Speed = 10;//速度
+	role[1].Exp = 0; //经验值
 	role[1].Level = 1;//等级
+
+
 	for (int i = 1; i <= 14; i++) {
 		role[1].place_index[i] = 1;
 	}
@@ -529,7 +650,7 @@ void game::select_talk(int num) {
 	if (num == 1 || num == 2 || num == 3)
 		task_status(num);
 	color(11);
-	if (num == 1 && role[record.role_index].taskstatus[num] == 1) {
+	if (num == 1 && role[record.current_role].taskstatus[num] == 1) {
 		color(11);
 		cout << npc[num].name << ":大人，贫道乃此地的土地神，现特来告知此岭上的凶险。此地名为白虎岭，原本也算风平浪静，但自从那白骨精占据此地，这里便成了生灵的炼狱！" << endl;
 		system("pause");
@@ -545,20 +666,20 @@ void game::select_talk(int num) {
 			cin >> choice;
 		}
 		if (choice == 1) {
-			role[record.role_index].taskstatus[num] = 2;
+			role[record.current_role].taskstatus[num] = 2;
 		}
 
 	}
-	else if (num == 1 && role[record.role_index].taskstatus[num] == 2) {
+	else if (num == 1 && role[record.current_role].taskstatus[num] == 2) {
 		color(11);
-		cout << place[record.role_index].Name << "希望大人尽快还白虎岭往日太平。" << endl;
+		cout << place[record.current_role].Name << "希望大人尽快还白虎岭往日太平。" << endl;
 		color(7);
 	}
-	else if (num == 1 && role[record.role_index].taskstatus[num] == 3) {
+	else if (num == 1 && role[record.current_role].taskstatus[num] == 3) {
 		color(11);
 		cout << "多谢" << npc[num].name << "帮助白虎岭恢复太平。" << endl;
 	}
-	else if (num == 2 && role[record.role_index].taskstatus[num] == 1) {
+	else if (num == 2 && role[record.current_role].taskstatus[num] == 1) {
 		color(11);
 		cout << npc[num].name << ":道长，我的女儿小翠今天独自一人去了邻村，至今未归，恐怕是遇到了青毛狮子精，恳求道长帮忙去打败狮子精，救出我的女儿。" << endl;
 		system("pause");
@@ -572,16 +693,16 @@ void game::select_talk(int num) {
 			cin >> choice;
 		}
 		if (choice == 1) {
-			role[record.role_index].taskstatus[num] = 2;
+			role[record.current_role].taskstatus[num] = 2;
 		}
 	}
-	else if (num == 2 && role[record.role_index].taskstatus[num] == 2) {
+	else if (num == 2 && role[record.current_role].taskstatus[num] == 2) {
 		cout << npc[num].name << "希望大人尽快救回我的女儿。" << endl;
 	}
-	else if (num == 2 && role[record.role_index].taskstatus[num] == 3) {
-		cout << "多谢" << role[record.role_index].Name << "帮助救回我的女儿。" << endl;
+	else if (num == 2 && role[record.current_role].taskstatus[num] == 3) {
+		cout << "多谢" << role[record.current_role].Name << "帮助救回我的女儿。" << endl;
 	}
-	else if (num == 3 && role[record.role_index].taskstatus[num] == 1) {
+	else if (num == 3 && role[record.current_role].taskstatus[num] == 1) {
 		cout << npc[num].name << "认为你也是妖怪的同伙，对你一言不发。" << endl;
 		system("pause");
 
@@ -589,10 +710,10 @@ void game::select_talk(int num) {
 		npc[num].taskstatus = 3;
 
 	}
-	else if (num == 3 && role[record.role_index].taskstatus[num] == 3) {
-		cout << "多谢" << role[record.role_index].Name << "帮助救我脱离魔掌。" << endl;
+	else if (num == 3 && role[record.current_role].taskstatus[num] == 3) {
+		cout << "多谢" << role[record.current_role].Name << "帮助救我脱离魔掌。" << endl;
 	}
-	else if (num == 4 && role[record.role_index].taskstatus[num] == 1) {
+	else if (num == 4 && role[record.current_role].taskstatus[num] == 1) {
 		cout << npc[num].name << "：盘丝洞错综复杂，普通人想要通过，简直痴心妄想，所以我特意设下考验，凡能够走入此迷宫者，我会带他走出盘丝洞。" << endl;
 		system("pause");
 		color(4);
@@ -608,7 +729,7 @@ void game::select_talk(int num) {
 		while (choice == 1) {
 			color(7);
 			if (Labyrinth() == 1)
-				role[record.role_index].taskstatus[num] = 3;
+				role[record.current_role].taskstatus[num] = 3;
 			else {
 				cout << "是否重新挑战？" << endl;
 				cout << "1.是\t2.否" << endl;
@@ -620,7 +741,7 @@ void game::select_talk(int num) {
 			}
 		}
 	}
-	else if (num == 4 && role[record.role_index].taskstatus[num] == 3) {
+	else if (num == 4 && role[record.current_role].taskstatus[num] == 3) {
 		cout << "你通过了考验，你在盘丝洞可以畅通无阻。" << endl;
 	}
 
@@ -628,25 +749,25 @@ void game::select_talk(int num) {
 	else if (num == 5) {
 		cout << "你迫不及待地登上雷音寺，面见如来佛祖。他们走进雷音寺大殿，见到佛祖端坐在金色莲花座上，佛光普照，显得无比庄严。" << endl;
 		system("pause");
-		if (role[record.role_index].taskstatus[num] == 1) {
-			if (role[record.role_index].taskstatus[1] == 3 && role[record.role_index].taskstatus[2] == 3) {
-				if (record.role_index == 1) {
+		if (role[record.current_role].taskstatus[num] == 1) {
+			if (role[record.current_role].taskstatus[1] == 3 && role[record.current_role].taskstatus[2] == 3) {
+				if (record.current_role == 1) {
 					cout << "你说：弟子唐三藏历经艰辛，终于来到西天，恳请佛祖赐予真经。" << endl;
 					system("pause");
 					cout << "如来佛祖（微笑着点头）：善哉，善哉。你们师徒四人不畏艰险，心怀坚定，终于完成了取经之旅。此行的艰难困苦，都是对你们心性的考验，汝等皆通过此劫，实属不易。" << endl;
 				}
-				else if (record.role_index == 2) {
+				else if (record.current_role == 2) {
 					cout << "你（上前一步，双手合十）：佛祖，俺老孙一路降妖除魔，可算尽心尽力。如今终于见到佛祖，请求赐予真经，让我们早日回到东土，造福众生。" << endl;
 					system("pause");
 					cout << "如来佛祖：悟空，你性情刚烈，虽然多有顽劣之处，但一路上护持唐僧，功不可没。你们所取的真经，乃是佛法精髓，需得用心领悟，才能普渡众生。" << endl;
 
 				}
-				else if (record.role_index == 3) {
+				else if (record.current_role == 3) {
 					cout << "你（搓着手，谦虚地低头）：佛祖，我这一路上虽然懒惰了一些，但也没少出力。希望佛祖能宽恕我的过失，赐予真经，让我们早日回到东土，造福众生。" << endl;
 					system("pause");
 					cout << "如来佛祖（慈悲地看着八戒）：八戒，你虽然贪吃懒惰，但也能及时悔悟。你心中尚存善念，也当得福报。你们的功德，皆有定数。" << endl;
 				}
-				else if (record.role_index == 4) {
+				else if (record.current_role == 4) {
 					cout << "你（恭敬地行礼）：佛祖，弟子沙悟净虽为末徒，但愿追随师父，一同将佛法传至东土，为众生造福。" << endl;
 					system("pause");
 					cout << "如来佛祖：沙僧，你心性忠厚，默默付出，虽少言语，但功德无量。今日，尔等完成大愿，皆为佛门有缘之人。" << endl;
@@ -655,23 +776,23 @@ void game::select_talk(int num) {
 				system("pause");
 			}
 
-			else if (role[record.role_index].taskstatus[1] == 2 || role[record.role_index].taskstatus[2] == 2) {
-				cout << "如来佛祖：" << role[record.role_index].Name << "，其实取经途中也是有许多乐趣的，结果固然重要，但沿途的风景也很美丽，不妨主动帮助别人，这也是我佛存在的意义，希望你取回真经后，可以领悟其中的四圣谛和八正道。" << endl;
+			else if (role[record.current_role].taskstatus[1] == 2 || role[record.current_role].taskstatus[2] == 2) {
+				cout << "如来佛祖：" << role[record.current_role].Name << "，其实取经途中也是有许多乐趣的，结果固然重要，但沿途的风景也很美丽，不妨主动帮助别人，这也是我佛存在的意义，希望你取回真经后，可以领悟其中的四圣谛和八正道。" << endl;
 				system("pause");
 				cout << "如来面露出一丝失望之色，对你说：佛只渡有缘人，这经与你无缘" << endl;
 				system("pause");
 			}
 
 
-			else if (role[record.role_index].taskstatus[1] == 1 || role[record.role_index].taskstatus[2] == 1) {
-				cout << "如来佛祖：" << role[record.role_index].Name << "，其实取经途中也是有许多乐趣的，结果固然重要，但沿途的风景也很美丽，不妨主动帮助别人，这也是我佛存在的意义，希望你取回真经后，可以领悟其中的四圣谛和八正道。" << endl;
+			else if (role[record.current_role].taskstatus[1] == 1 || role[record.current_role].taskstatus[2] == 1) {
+				cout << "如来佛祖：" << role[record.current_role].Name << "，其实取经途中也是有许多乐趣的，结果固然重要，但沿途的风景也很美丽，不妨主动帮助别人，这也是我佛存在的意义，希望你取回真经后，可以领悟其中的四圣谛和八正道。" << endl;
 				system("pause");
 				cout << "如来挥手示意，众罗汉捧出几卷金光闪闪的佛经，交予你。然后目送你带着真经，离开雷音寺，踏上了归途。" << endl;
 				system("pause");
 			}
-			role[record.role_index].taskstatus[num] == 3;
+			role[record.current_role].taskstatus[num] == 3;
 		}
-		else if (role[record.role_index].taskstatus[num] == 3) {
+		else if (role[record.current_role].taskstatus[num] == 3) {
 			cout << "如来面说：你回去吧，佛只渡有缘人，这经与你无缘" << endl;
 			system("pause");
 		}
@@ -710,15 +831,15 @@ void show_surface()
 
 void game::task_status(int num)
 {
-	if (num == 1 && role[record.role_index].taskstatus[num] == 2) {
+	if (num == 1 && role[record.current_role].taskstatus[num] == 2) {
 		if (true) {  //判断敌人血量是否为0
-			role[record.role_index].taskstatus[num] == 3;
+			role[record.current_role].taskstatus[num] == 3;
 		}
 	}
-	else if ((num == 2 && role[record.role_index].taskstatus[num] == 2) || (num == 3 && role[record.role_index].taskstatus[num] == 2)) {
+	else if ((num == 2 && role[record.current_role].taskstatus[num] == 2) || (num == 3 && role[record.current_role].taskstatus[num] == 2)) {
 		if (true) {
-			role[record.role_index].taskstatus[2] == 3;
-			role[record.role_index].taskstatus[3] == 3;
+			role[record.current_role].taskstatus[2] == 3;
+			role[record.current_role].taskstatus[3] == 3;
 		}
 	}
 }

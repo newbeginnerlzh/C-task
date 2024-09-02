@@ -6,6 +6,35 @@
 using namespace std;
 
 
+
+class Skill {
+public:
+	string Name;
+	string Describe;
+
+	short Power;//伤害
+	short CostMp;//耗蓝
+	short Level;//等级
+};
+
+
+class Equipment {
+public:
+	string Name;
+	string Describe;
+	short Location;	//可以装备的位置。1-头，2-身，3-手，4-脚
+	short Cost;		//值多少钱
+
+	short AddAttack;	//增加攻击
+	short AddDefence;	//增加防御
+	short AddHP;		//增加Hp
+	short AddMaxHP;	//增加max HP
+	short AddMP;		//增加Mp
+	short AddMaxMP;	//增加max MP
+	short AddSpeed;	//增加速度
+};
+
+
 class Role {//主角
 public:
 	//void operator =(Role player);
@@ -15,19 +44,19 @@ public:
 	string Describe;
 
 	short Attack;//普攻值
-	Skill Skills[4];//技能
+	short skill_index[4];//技能
 
 	short Money;//金币，用于买装备
-	short Goodsnum;
-	Good Goods[10];//物品仓库
-	short Equipmentnum;
-	Good Equipment[5];//当前装备
+	//short Goodsnum;
+	short Bag[15];//背包，记录每个引索对应装备的数量
+	//short Equipmentnum;
+	short MyEquipment_index[5];//当前装备
 
-	short Hp;//生命值
+	short HP;//生命值
 	short Max_Hp;//当前HP阈值
-	short Defence;//护盾
+	short Defence;//防御
 
-	short Mp;//蓝量
+	short MP;//蓝量
 	short Max_Mp;//当前MP阈值
 
 	short Speed;//速度
@@ -38,51 +67,27 @@ public:
 	short taskstatus[6];
 };
 
-class enemy {//配角
+class  Enemy{
 public:
-	//void operator= (enemy npc);
-
-public:
-
 	string Name;
 	string Describe;
 
 	short Attack;//普攻值
-	Skill skill;//技能
+	short skill_index;//技能
 
-	short Defence;
-	short Hp;//生命值
+	short HP;//生命值
 	short Max_Hp;//当前HP阈值
 
 	short Speed;//速度
 
-
+	short Lose_Exp;//掉落的经验值
+	short Lose_Money;//掉落的金币
 };
 
-enum GAMESTATE {
-	system_menu,		//新的故事，旧的回忆，封建归隐，关于
-	playing_sys_menu,	//存储进度，读取进度，离开游戏
-	player_adven,		//玩家冒险：赶路，交谈，攻击，状态，物品，进度
-	show_exits,			//让玩家选择去哪里
-	talk_with_npc,		//让玩家选择和谁交谈
-	attack_npc,			//让玩家选择攻击谁
-	watch_npc,			//让玩家选择观察谁
-	player_state,		//玩家察看状态、技能、物品
-	list_goods,			//列出所拥有物品
-	list_skills,		//列出所拥有的技能
-	list_quest,			//查看任务
-	use_goods,
-	use_skill,
-	fighting,			//战斗中
-	player_act,			//轮到玩家行动	
-	list_free_item,		//列出可以拾取的物品
-	pick_item,			//捡取物品
-	check_equipment,	//检查装备
-	unequip_,			//卸除装备
-	trading,			//交易
-	buy_goods,
-	sell_goods
-};
+
+
+
+
 
 
 
