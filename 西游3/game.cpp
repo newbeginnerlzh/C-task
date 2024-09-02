@@ -17,6 +17,9 @@ void color(const unsigned short textColor)      //自定义函根据参数改变颜色
 
 
 void game::game_init() {
+
+
+
 	string background;
 	color(2);
 	cout << "故事背景" << endl;
@@ -89,6 +92,11 @@ void game::game_begin() {
 				init_place();
 				init_role();
 				init_npc();
+				
+				load_shore();
+				load_roleSkill();
+				load_enemy();
+				load_enemySkill();
 				system("cls");
 				game_init();
 				record.status = player_adven;
@@ -220,7 +228,7 @@ void game::game_begin() {
 			fight(show_enemy());
 			system("pause");
 			system("cls");
-			record.status = system_menu;
+			record.status = player_adven;
 			break;
 
 		case player_state:
@@ -250,14 +258,14 @@ void game::game_begin() {
 					}
 				}
 				else if (i == 3) {
-					record.status = system_menu;
+					record.status = player_adven;
 					break;
 				}
 				system("pause");
 				system("cls");
 			}
 			system("cls");
-			record.status = system_menu;
+			record.status = player_adven;
 			break;
 
 		case watch_npc:
@@ -291,7 +299,7 @@ void game::game_begin() {
 				system("pause");
 			}
 			system("cls");
-			record.status = system_menu;
+			record.status = player_adven;
 			break;
 
 

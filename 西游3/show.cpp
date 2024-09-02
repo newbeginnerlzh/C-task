@@ -3,9 +3,7 @@
 #include"Game.h"
 using namespace std;
 
-void game::show_menu() {
-	cout << "1.赶路  2.观察  3.战斗  4.状态  5.商店  6.退出" << endl;
-}
+
 
 void game::show_eq() {
 	int i;
