@@ -32,8 +32,11 @@ void game::sell() {
 		role[record.current_role].Bag[i]--;
 		role[record.current_role].Money = role[record.current_role].Money + shore[i].Cost;
 		cout << "已出售，当前所持数量为：" << role[record.current_role].Bag[i] << endl;
+
+
 	}
 }
+
 
 
 void game::equip() {
